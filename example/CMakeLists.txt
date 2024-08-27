@@ -39,6 +39,7 @@ include(CopyRuntimeDependencies)
 include(SocketLibraries)
 
 set(EXAMPLES
+  keys
   direct_tcpip
   ssh2
   scp
