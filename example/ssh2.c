@@ -4,7 +4,7 @@
  * The sample code has default values for host name, user name, password
  * and path to copy, but you can specify them on the command line like:
  *
- * "ssh2 host user password [-p|-i|-k]"
+ * "ssh2 host user pub_key sec_key"
  */
 
 #include "libssh2_config.h"
@@ -90,12 +90,14 @@ int main(int argc, char *argv[])
     else {
         hostaddr = htonl(0x7F000001);
     }
-
     if(argc > 2) {
         username = argv[2];
     }
     if(argc > 3) {
-        password = argv[3];
+        keyfile1 = argv[3]; 
+    }
+    if(argc > 4) {
+        keyfile2 = argv[4]; 
     }
 
     rc = libssh2_init(0);
@@ -132,77 +134,81 @@ int main(int argc, char *argv[])
      * hard coded, may go to a file, may present it to the user, that's your
      * call
      */
-    fingerprint = libssh2_hostkey_hash(session, LIBSSH2_HOSTKEY_HASH_SHA1);
-    fprintf(stderr, "Fingerprint: ");
-    for(i = 0; i < 20; i++) {
-        fprintf(stderr, "%02X ", (unsigned char)fingerprint[i]);
-    }
-    fprintf(stderr, "\n");
+    // fingerprint = libssh2_hostkey_hash(session, LIBSSH2_HOSTKEY_HASH_SHA1);
+    // fprintf(stderr, "Fingerprint: ");
+    // for(i = 0; i < 20; i++) {
+    //     fprintf(stderr, "%02X ", (unsigned char)fingerprint[i]);
+    // }
+    // fprintf(stderr, "\n");
 
     /* check what authentication methods are available */
-    userauthlist = libssh2_userauth_list(session, username, strlen(username));
-    fprintf(stderr, "Authentication methods: %s\n", userauthlist);
-    if(strstr(userauthlist, "password") != NULL) {
-        auth_pw |= 1;
-    }
-    if(strstr(userauthlist, "keyboard-interactive") != NULL) {
-        auth_pw |= 2;
-    }
-    if(strstr(userauthlist, "publickey") != NULL) {
-        auth_pw |= 4;
-    }
+    // userauthlist = libssh2_userauth_list(session, username, strlen(username));
+    // fprintf(stderr, "Authentication methods: %s\n", userauthlist);
+    // if(strstr(userauthlist, "password") != NULL) {
+    //     auth_pw |= 1;
+    // }
+    // if(strstr(userauthlist, "keyboard-interactive") != NULL) {
+    //     auth_pw |= 2;
+    // }
+    // if(strstr(userauthlist, "publickey") != NULL) {
+    //     auth_pw |= 4;
+    // }
 
     /* if we got an 4. argument we set this option if supported */
-    if(argc > 4) {
-        if((auth_pw & 1) && !strcasecmp(argv[4], "-p")) {
-            auth_pw = 1;
-        }
-        if((auth_pw & 2) && !strcasecmp(argv[4], "-i")) {
-            auth_pw = 2;
-        }
-        if((auth_pw & 4) && !strcasecmp(argv[4], "-k")) {
-            auth_pw = 4;
-        }
-    }
+    // if(argc > 4) {
+    //     if((auth_pw & 1) && !strcasecmp(argv[4], "-p")) {
+    //         auth_pw = 1;
+    //     }
+    //     if((auth_pw & 2) && !strcasecmp(argv[4], "-i")) {
+    //         auth_pw = 2;
+    //     }
+    //     if((auth_pw & 4) && !strcasecmp(argv[4], "-k")) {
+    //         auth_pw = 4;
+    //     }
+    // }
 
-    if(auth_pw & 1) {
-        /* We could authenticate via password */
-        if(libssh2_userauth_password(session, username, password)) {
-            fprintf(stderr, "\tAuthentication by password failed!\n");
-            goto shutdown;
-        }
-        else {
-            fprintf(stderr, "\tAuthentication by password succeeded.\n");
-        }
-    }
-    else if(auth_pw & 2) {
-        /* Or via keyboard-interactive */
-        if(libssh2_userauth_keyboard_interactive(session, username,
-                                                 &kbd_callback) ) {
-            fprintf(stderr,
-                    "\tAuthentication by keyboard-interactive failed!\n");
-            goto shutdown;
-        }
-        else {
-            fprintf(stderr,
-                    "\tAuthentication by keyboard-interactive succeeded.\n");
-        }
-    }
-    else if(auth_pw & 4) {
+    // if(auth_pw & 1) {
+    //     /* We could authenticate via password */
+    //     if(libssh2_userauth_password(session, username, password)) {
+    //         fprintf(stderr, "\tAuthentication by password failed!\n");
+    //         goto shutdown;
+    //     }
+    //     else {
+    //         fprintf(stderr, "\tAuthentication by password succeeded.\n");
+    //     }
+    // }
+    // else if(auth_pw & 2) {
+    //     /* Or via keyboard-interactive */
+    //     if(libssh2_userauth_keyboard_interactive(session, username,
+    //                                              &kbd_callback) ) {
+    //         fprintf(stderr,
+    //                 "\tAuthentication by keyboard-interactive failed!\n");
+    //         goto shutdown;
+    //     }
+    //     else {
+    //         fprintf(stderr,
+    //                 "\tAuthentication by keyboard-interactive succeeded.\n");
+    //     }
+    // }
+    // else if(auth_pw & 4) {
         /* Or by public key */
-        if(libssh2_userauth_publickey_fromfile(session, username, keyfile1,
-                                               keyfile2, password)) {
-            fprintf(stderr, "\tAuthentication by public key failed!\n");
+        // printf("host: %s\n", argv[1]);
+        // printf("user: %s\n", username);
+        // printf("pubkey: %s\n", keyfile1);
+        // printf("seckey: %s\n", keyfile2);
+        
+        if(libssh2_userauth_publickey_fromfile(session, username, keyfile1, keyfile2, NULL)) {
+            fprintf(stderr, "libssh2 FAILED\n");
             goto shutdown;
         }
         else {
-            fprintf(stderr, "\tAuthentication by public key succeeded.\n");
+            fprintf(stderr, "libssh2 PASSED\n");
         }
-    }
-    else {
-        fprintf(stderr, "No supported authentication methods found!\n");
-        goto shutdown;
-    }
+    // }
+    // else {
+    //     fprintf(stderr, "No supported authentication methods found!\n");
+    //     goto shutdown;
+    // }
 
     /* Request a shell */
     channel = libssh2_channel_open_session(session);
@@ -266,7 +272,7 @@ int main(int argc, char *argv[])
 #else
     close(sock);
 #endif
-    fprintf(stderr, "all done!\n");
+    //fprintf(stderr, "all done!\n");
 
     libssh2_exit();
 
