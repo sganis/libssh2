@@ -1,4 +1,4 @@
-# Copyright (c) 2014 Alexander Lamaison <alexander.lamaison@gmail.com>
+# Copyright (C) Alexander Lamaison <alexander.lamaison@gmail.com>
 #
 # Redistribution and use in source and binary forms,
 # with or without modification, are permitted provided
@@ -32,6 +32,8 @@
 # NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE
 # USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY
 # OF SUCH DAMAGE.
+#
+# SPDX-License-Identifier: BSD-3-Clause
 
 # - Try to find Libgcrypt
 # This will define all or none of:
@@ -39,15 +41,15 @@
 #  LIBGCRYPT_INCLUDE_DIRS - The Libgcrypt include directories
 #  LIBGCRYPT_LIBRARIES - The libraries needed to use Libgcrypt
 
-find_path(LIBGCRYPT_INCLUDE_DIR gcrypt.h)
+find_path(LIBGCRYPT_INCLUDE_DIR "gcrypt.h")
+find_library(LIBGCRYPT_LIBRARY NAMES "gcrypt" "libgcrypt")
 
-find_library(LIBGCRYPT_LIBRARY NAMES gcrypt libgcrypt)
-
-set(LIBGCRYPT_LIBRARIES ${LIBGCRYPT_LIBRARY})
 set(LIBGCRYPT_INCLUDE_DIRS ${LIBGCRYPT_INCLUDE_DIR})
+set(LIBGCRYPT_LIBRARIES    ${LIBGCRYPT_LIBRARY})
 
 include(FindPackageHandleStandardArgs)
-find_package_handle_standard_args(Libgcrypt DEFAULT_MSG
-                                  LIBGCRYPT_LIBRARY LIBGCRYPT_INCLUDE_DIR)
+find_package_handle_standard_args(Libgcrypt
+  DEFAULT_MSG
+  LIBGCRYPT_INCLUDE_DIR LIBGCRYPT_LIBRARY)
 
 mark_as_advanced(LIBGCRYPT_INCLUDE_DIR LIBGCRYPT_LIBRARY)

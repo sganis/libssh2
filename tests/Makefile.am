@@ -1,41 +1,55 @@
-AM_CPPFLAGS = -I$(top_srcdir)/src -I$(top_srcdir)/include -I$(top_builddir)/src
-LDADD = ../src/libssh2.la
+# Copyright (C) The libssh2 project and its contributors.
+# SPDX-License-Identifier: BSD-3-Clause
+SUBDIRS = ossfuzz
 
+AM_CPPFLAGS = -I$(top_builddir)/src -I$(top_srcdir)/src -I$(top_srcdir)/include
+
+# This might hold -Werror
+AM_CFLAGS = @LIBSSH2_CFLAG_EXTRAS@
+
+# Get DOCKER_TESTS, DOCKER_TESTS_STATIC, STANDALONE_TESTS, STANDALONE_TESTS_STATOC, SSHD_TESTS,
+# librunner_la_SOURCES defines and *_LDFLAGS for statically linked tests.
+include Makefile.inc
+
+if HAVE_LIB_STATIC
+DOCKER_TESTS += $(DOCKER_TESTS_STATIC)
+STANDALONE_TESTS += $(STANDALONE_TESTS_STATIC)
+endif
+
+# Some tests rely on the 'srcdir' env. Set by autotools automatically.
+TESTS_ENVIRONMENT =
+
+# Tests to run
+TESTS = mansyntax.sh
+
+if RUN_DOCKER_TESTS
+TESTS += $(DOCKER_TESTS)
+endif
+
+TESTS += $(STANDALONE_TESTS)
+
+# TAP tests
+TEST_EXTENSIONS = .test
+# 'TEST' in 'TEST_LOG_DRIVER' is the test extension in uppercase.
+TEST_LOG_DRIVER = $(SHELL) $(top_srcdir)/tap-driver.sh
+
+TESTS_ENVIRONMENT += EXEEXT=$(EXEEXT)
+if RUN_SSHD_TESTS
 if SSHD
-noinst_PROGRAMS = ssh2
-ssh2_SOURCES = ssh2.c
+TESTS += test_sshd.test
+TESTS_ENVIRONMENT += SSHD="$(SSHD)"
+endif
+endif
+if RUN_DOCKER_TESTS
+TESTS += test_read_algos.test
 endif
 
-ctests = simple$(EXEEXT)
-TESTS = $(ctests) mansyntax.sh
-if SSHD
-TESTS += ssh2.sh
-endif
-check_PROGRAMS = $(ctests)
+# Tests to build
+check_PROGRAMS = $(DOCKER_TESTS) $(STANDALONE_TESTS) $(SSHD_TESTS)
 
-TESTS_ENVIRONMENT = SSHD=$(SSHD) EXEEXT=$(EXEEXT)
-TESTS_ENVIRONMENT += srcdir=$(top_srcdir)/tests builddir=$(top_builddir)/tests
+# Internal library used by tests
+LDADD = librunner.la
+check_LTLIBRARIES = librunner.la
 
-EXTRA_DIST = ssh2.sh mansyntax.sh
-EXTRA_DIST += etc/host etc/host.pub etc/user etc/user.pub
-EXTRA_DIST += CMakeLists.txt libssh2_config_cmake.h.in sshd_fixture.sh.in
-EXTRA_DIST += key_dsa key_dsa.pub key_dsa_wrong key_dsa_wrong.pub key_rsa key_rsa.pub
-EXTRA_DIST += openssh_server/authorized_keys openssh_server/Dockerfile openssh_server/ssh_host_rsa_key
-EXTRA_DIST += openssh_fixture.c openssh_fixture.h runner.c session_fixture.c session_fixture.h
-EXTRA_DIST += test_hostkey.c test_hostkey_hash.c
-EXTRA_DIST += test_keyboard_interactive_auth_fails_with_wrong_response.c
-EXTRA_DIST += test_keyboard_interactive_auth_succeeds_with_correct_response.c
-EXTRA_DIST += test_password_auth_fails_with_wrong_password.c
-EXTRA_DIST += test_password_auth_fails_with_wrong_username.c
-EXTRA_DIST += test_password_auth_succeeds_with_correct_credentials.c
-EXTRA_DIST += test_public_key_auth_fails_with_wrong_key.c
-EXTRA_DIST += test_public_key_auth_succeeds_with_correct_dsa_key.c
-EXTRA_DIST += test_public_key_auth_succeeds_with_correct_rsa_key.c
-EXTRA_DIST += test_public_key_auth_succeeds_with_correct_encrypted_rsa_key.c
-if OPENSSL
-# TODO: need to add a test for specific openssl version some how
-# EXTRA_DIST += test_public_key_auth_succeeds_with_correct_ed25519_key.c
-# EXTRA_DIST += test_public_key_auth_succeeds_with_correct_encrypted_ed25519_key.c
-# EXTRA_DIST += test_public_key_auth_succeeds_with_correct_ed25519_key_from_mem.c
-EXTRA_DIST += test_public_key_auth_succeeds_with_correct_rsa_openssh_key.c
-endif
+# This must be last in the list so it resolves symbols in previous libraries
+LDADD += ../src/libssh2.la
