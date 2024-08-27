@@ -2,6 +2,7 @@
 # SPDX-License-Identifier: BSD-3-Clause
 
 noinst_PROGRAMS = \
+  keys \
   direct_tcpip \
   scp \
   scp_nonblock \

@@ -6,34 +6,25 @@
  * "keys host user pub_key sec_key"
  */
 
-#include "libssh2_config.h"
+#include "libssh2_setup.h"
 #include <libssh2.h>
-#include <libssh2_sftp.h>
 
-#ifdef HAVE_WINDOWS_H
-# include <windows.h>
-#endif
-#ifdef HAVE_WINSOCK2_H
-# include <winsock2.h>
-#endif
 #ifdef HAVE_SYS_SOCKET_H
-# include <sys/socket.h>
+#include <sys/socket.h>
 #endif
-#ifdef HAVE_NETINET_IN_H
-# include <netinet/in.h>
-#endif
-# ifdef HAVE_UNISTD_H
+#ifdef HAVE_UNISTD_H
 #include <unistd.h>
 #endif
-# ifdef HAVE_ARPA_INET_H
+#ifdef HAVE_NETINET_IN_H
+#include <netinet/in.h>
+#endif
+#ifdef HAVE_ARPA_INET_H
 #include <arpa/inet.h>
 #endif
 
-#include <sys/types.h>
-#include <fcntl.h>
-#include <errno.h>
 #include <stdio.h>
-#include <ctype.h>
+#include <stdlib.h>
+#include <string.h>
 
 
 const char *keyfile1 = "~/.ssh/id_rsa.pub";
@@ -44,8 +35,9 @@ const char *password = "password";
 
 int main(int argc, char *argv[])
 {
-    unsigned long hostaddr;
-    int rc, sock, i, auth_pw = 0;
+    uint32_t hostaddr;
+    libssh2_socket_t sock;
+    int rc;
     struct sockaddr_in sin;
     LIBSSH2_SESSION *session;
 
