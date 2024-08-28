@@ -3,7 +3,7 @@
  * The sample code has default values for host name, user and keys
  * but you can specify them on the command line like:
  *
- * "keys host user pub_key sec_key"
+ * "keys host user sec_key"
  */
 
 #include "libssh2_setup.h"
@@ -27,8 +27,7 @@
 #include <string.h>
 
 
-const char *keyfile1 = "~/.ssh/id_rsa.pub";
-const char *keyfile2 = "~/.ssh/id_rsa";
+const char *keyfile = "~/.ssh/id_rsa";
 const char *username = "username";
 const char *password = "password";
 
@@ -62,11 +61,9 @@ int main(int argc, char *argv[])
         username = argv[2];
     }
     if(argc > 3) {
-        keyfile1 = argv[3]; 
+        keyfile = argv[3]; 
     }
-    if(argc > 4) {
-        keyfile2 = argv[4]; 
-    }
+    
 
     rc = libssh2_init(0);
     if(rc != 0) {
@@ -90,7 +87,7 @@ int main(int argc, char *argv[])
         return -1;
     }
 
-    if(libssh2_userauth_publickey_fromfile(session, username, keyfile1, keyfile2, NULL)) {
+    if(libssh2_userauth_publickey_fromfile(session, username, NULL, keyfile, NULL)) {
         fprintf(stderr, "libssh2 FAILED\n");
         goto shutdown;
     }
