@@ -2,10 +2,10 @@
 set DIR=%~dp0
 set DIR=%DIR:~0,-1%
 set CWD=%CD%
-set HOST=192.168.100.202
+set HOST=192.168.64.1
 set USER=san
 set KEYDIR=%DIR%\..\..\tests
-set EXEDIR=build\example\Release
+set EXEDIR=build\example
 
 
 :: copy authorized_keys to server
@@ -15,6 +15,12 @@ type %KEYDIR%\key_rsa_openssh.pub >> authorized_keys
 type %KEYDIR%\key_dsa.pub >> authorized_keys
 type %KEYDIR%\key_ecdsa.pub >> authorized_keys
 type %KEYDIR%\key_ed25519.pub >> authorized_keys
+
+:: fix permissions
+icacls %KEYDIR% /c /t /inheritance:d
+icacls %KEYDIR% /c /t /grant %USER%:F
+icacls %KEYDIR% /c /t /grant SYSTEM:F
+icacls %KEYDIR% /c /t /remove Administrator BUILTIN\Administrators BUILTIN Everyone Users "Authenticated Users"
 
 echo:
 echo ssh id_rsa... 

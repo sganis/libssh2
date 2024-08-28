@@ -18,11 +18,12 @@ if not exist openssl-%VERSION%.tar.gz (
 tar xf openssl-%VERSION%.tar.gz
 
 cd openssl-openssl-%VERSION%
-perl Configure 			    ^
-	no-shared               ^
-	--api=1.1.0             ^
-	--prefix=C:\openssl	    ^
-	--openssldir=C:\openssl
+perl Configure 			        ^
+    VC-CLANG-WIN64-CLANGASM-ARM ^
+	no-shared                   ^
+	--api=1.1.0                 ^
+	--prefix=C:\openssl-clang	^
+	--openssldir=C:\openssl-clang
 
 nmake build_generated
 nmake libcrypto.lib
